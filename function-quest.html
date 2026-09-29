@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Function Quest — Transformations</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#f5f3ff;background:#101126}*{box-sizing:border-box}body{margin:0}main{max-width:1050px;margin:auto;padding:24px}header{display:flex;justify-content:space-between;align-items:center;gap:20px}h1{font-size:clamp(1.8rem,4vw,3rem);margin:.2rem 0}h2{margin:0 0 10px}p{line-height:1.5}.muted{color:#c2c5dd}.pill{border:1px solid #777baa;border-radius:100px;padding:8px 14px;white-space:nowrap}.layout{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(300px,1fr);gap:20px;margin-top:20px}.panel{background:#1b1d3a;border:1px solid #3a3d64;border-radius:20px;padding:20px}.graph{width:100%;aspect-ratio:1.3;background:#15172f;border-radius:12px;touch-action:none}button{font:inherit;color:#fff;background:#34365e;border:1px solid #6d70a0;border-radius:12px;padding:10px 14px;cursor:pointer}button:hover,button:focus-visible{outline:2px solid #a8f1db;outline-offset:2px}button:disabled{opacity:.45;cursor:not-allowed}button.primary{background:#6b4ae8;border-color:#a394ff;font-weight:700}button.small{min-width:44px}button.selected{background:#256d63;border-color:#a8f1db}.control{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:14px 0}.stepper{display:flex;align-items:center;gap:10px}.number{min-width:2ch;text-align:center;font-size:1.25rem;font-variant-numeric:tabular-nums}.formula{font-size:1.35rem;font-weight:700;background:#292c52;padding:13px;border-radius:12px;margin:16px 0}.feedback{min-height:80px;background:#292c52;border-radius:12px;padding:13px;margin:16px 0}.feedback.good{border-left:5px solid #83e7c8}.feedback.try{border-left:5px solid #ffce85}.actions{display:flex;gap:10px;flex-wrap:wrap}.progress{height:8px;background:#35385b;border-radius:10px;overflow:hidden}.progress span{display:block;height:100%;background:#a8f1db;transition:width .25s}.key{display:flex;gap:18px;margin-top:10px;font-size:.9rem}.key i{display:inline-block;width:20px;border-top:3px solid;vertical-align:middle;margin-right:5px}.intro{max-width:800px}.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@media(max-width:760px){.layout{grid-template-columns:1fr}main{padding:14px}.panel{padding:15px}}
+</style>
+</head>
+<body><main>
+<header><div><div class="muted">INTERACTIVE MATH · 5 MINUTES</div><h1>Function Quest</h1></div><div class="pill" id="score">★ 0 / 3</div></header>
+<p class="intro">Move a parabola to the target. Each mission reveals one idea about transformations; use the graph to predict what your moves will do.</p>
+<div class="progress" aria-label="Mission progress"><span id="bar"></span></div>
+<div class="layout">
+<section class="panel" aria-label="Interactive graph"><h2 id="mission">Mission 1</h2><p class="muted" id="goal"></p><svg class="graph" id="plot" viewBox="0 0 600 460" role="img" aria-labelledby="plotTitle plotDesc"><title id="plotTitle">Parabola transformation graph</title><desc id="plotDesc">Dashed target parabola and solid parabola controlled by the buttons.</desc></svg><div class="key"><span><i style="border-color:#a8f1db"></i>Your curve</span><span><i style="border-color:#ffce85;border-top-style:dashed"></i>Target</span></div></section>
+<section class="panel"><h2>Build your function</h2><p class="muted">Start with y = x². Change one feature at a time.</p>
+<div class="formula" id="formula" aria-live="polite"></div>
+<div class="control"><span>Horizontal shift <span class="sr">in units</span></span><div class="stepper"><button class="small" data-key="h" data-delta="-1" aria-label="Shift left one unit">−</button><span class="number" id="hVal">0</span><button class="small" data-key="h" data-delta="1" aria-label="Shift right one unit">+</button></div></div>
+<div class="control"><span>Vertical shift <span class="sr">in units</span></span><div class="stepper"><button class="small" data-key="k" data-delta="-1" aria-label="Shift down one unit">−</button><span class="number" id="kVal">0</span><button class="small" data-key="k" data-delta="1" aria-label="Shift up one unit">+</button></div></div>
+<div class="control"><span>Reflection</span><button id="flip" aria-pressed="false">Flip over x-axis</button></div>
+<div class="feedback" id="feedback" role="status" aria-live="polite">Try the controls, then check your curve.</div>
+<div class="actions"><button class="primary" id="check">Check my curve</button><button id="next" hidden>Next mission →</button><button id="reset">Reset moves</button></div>
+</section></div>
+<p class="muted">Portfolio sample · Self-contained HTML · Keyboard accessible · No account or data collection</p>
+</main><script>
+(()=>{'use strict';
+const missions=[
+ {title:'Mission 1 · Find the hidden vertex',goal:'Move the blue curve until its vertex lands at (2, 1).',target:{h:2,k:1,a:1},hint:'The vertex of y = (x − h)² + k is (h, k). Move right 2 and up 1.',learn:'A horizontal shift changes the value inside the parentheses; a vertical shift changes the value outside.'},
+ {title:'Mission 2 · The sign trap',goal:'The target is y = (x + 3)² − 2. Match it before checking.',target:{h:-3,k:-2,a:1},hint:'Inside the parentheses, +3 means h = −3. Move left 3 and down 2.',learn:'Horizontal signs appear reversed: (x + 3)² shifts left 3.'},
+ {title:'Mission 3 · Mirror move',goal:'Match the downward-opening target whose vertex is (1, 2).',target:{h:1,k:2,a:-1},hint:'Move right 1 and up 2, then flip the curve over the x-axis.',learn:'The negative coefficient reflects the parabola, while the vertex remains (1, 2).'}
+];
+let round=0,state={h:0,k:0,a:1},solved=false,attempts=0;
+const $=id=>document.getElementById(id),svg=$('plot');
+function el(tag,attrs){let n=document.createElementNS('http://www.w3.org/2000/svg',tag);for(let [k,v] of Object.entries(attrs))n.setAttribute(k,v);return n}
+const X=x=>300+x*40,Y=y=>230-y*40;
+function curve(s){let d='';for(let x=-7;x<=7.01;x+=.06){let y=s.a*(x-s.h)**2+s.k;d+=(d?'L':'M')+X(x).toFixed(1)+','+Y(y).toFixed(1)}return d}
+ function label(attrs,value){let n=el('text',attrs);n.textContent=value;svg.append(n)}
+ function draw(){svg.replaceChildren();let title=el('title',{id:'plotTitle'});title.textContent='Parabola transformation graph';svg.append(title);svg.append(el('desc',{id:'plotDesc'}));let defs=el('defs',{}),clip=el('clipPath',{id:'clip'});clip.append(el('rect',{x:40,y:30,width:520,height:400}));defs.append(clip);svg.append(defs);
+ for(let v=-6;v<=6;v++){svg.append(el('line',{x1:X(v),y1:30,x2:X(v),y2:430,stroke:v===0?'#9ca0bd':'#343755','stroke-width':v===0?2:1}));if(v>-5&&v<5)label({x:X(v),y:447,'text-anchor':'middle',fill:'#bbc0db','font-size':13},v)}
+ for(let v=-5;v<=5;v++){svg.append(el('line',{x1:40,y1:Y(v),x2:560,y2:Y(v),stroke:v===0?'#9ca0bd':'#343755','stroke-width':v===0?2:1}));if(v!==0)label({x:28,y:Y(v)+4,'text-anchor':'end',fill:'#bbc0db','font-size':13},v)}
+ label({x:574,y:Y(0)+4,fill:'#eee','font-size':16},'x');label({x:X(0)+10,y:22,fill:'#eee','font-size':16},'y');
+ let target=missions[round].target;svg.append(el('path',{d:curve(target),fill:'none',stroke:'#ffce85','stroke-width':4,'stroke-dasharray':'9 8','clip-path':'url(#clip)'}));svg.append(el('path',{d:curve(state),fill:'none',stroke:'#a8f1db','stroke-width':4,'clip-path':'url(#clip)'}));
+ for(let [s,color] of [[target,'#ffce85'],[state,'#a8f1db']])svg.append(el('circle',{cx:X(s.h),cy:Y(s.k),r:6,fill:color,'clip-path':'url(#clip)'}));
+ $('plotDesc').textContent=`Target vertex (${target.h}, ${target.k}), ${target.a<0?'opens downward':'opens upward'}. Your vertex (${state.h}, ${state.k}), ${state.a<0?'opens downward':'opens upward'}.`;
+ }
+ function formula(){let inner=state.h===0?'x':`x ${state.h>0?'−':'+'} ${Math.abs(state.h)}`;return `y = ${state.a<0?'−':''}(${inner})² ${state.k===0?'':(state.k>0?'+':'−')+' '+Math.abs(state.k)}`.trim()}
+ function render(){ $('mission').textContent=missions[round].title;$('goal').textContent=missions[round].goal;$('formula').textContent=formula();$('hVal').textContent=state.h;$('kVal').textContent=state.k;$('flip').setAttribute('aria-pressed',state.a<0);$('flip').classList.toggle('selected',state.a<0);$('flip').textContent=state.a<0?'Reflected ✓':'Flip over x-axis';document.querySelectorAll('[data-key],#flip').forEach(b=>b.disabled=solved);$('bar').style.width=`${(round+(solved?1:0))/3*100}%`;$('score').textContent=`★ ${round+(solved?1:0)} / 3`;draw()}
+ function message(s,type){$('feedback').textContent=s;$('feedback').className='feedback '+type}
+ function reset(){state={h:0,k:0,a:1};solved=false;attempts=0;$('check').hidden=false;$('next').hidden=true;message('Try the controls, then check your curve.','');render()}
+ document.querySelectorAll('[data-key]').forEach(b=>b.addEventListener('click',()=>{let key=b.dataset.key;state[key]=Math.max(-4,Math.min(4,state[key]+Number(b.dataset.delta)));if(!solved)message('The solid curve follows each move. Compare its vertex and direction with the target.','');render()}));
+ $('flip').addEventListener('click',()=>{state.a*=-1;if(!solved)message('Notice what changed when you reflected the curve.','');render()});
+ $('reset').addEventListener('click',reset);
+ $('check').addEventListener('click',()=>{let t=missions[round],v=t.target;attempts++;if(state.h===v.h&&state.k===v.k&&state.a===v.a){solved=true;message(`Matched in ${attempts} ${attempts===1?'check':'checks'}! ${t.learn}`,'good');$('check').hidden=true;$('next').hidden=false;$('next').textContent=round===2?'See your result →':'Next mission →';render()}else{let parts=[];if(state.h!==v.h)parts.push('horizontal position');if(state.k!==v.k)parts.push('height');if(state.a!==v.a)parts.push('opening direction');message(`Close! Revisit the ${parts.join(', ')}. ${attempts>1?t.hint:'Use the vertex dots as clues.'}`,'try')}});
+ $('next').addEventListener('click',()=>{if(round<2){round++;reset()}else{$('mission').textContent='Quest complete ★';$('goal').textContent='You moved, reflected, and decoded parabolas.';message('Your takeaway: y = a(x − h)² + k has vertex (h, k); a < 0 opens downward. Try Reset moves to revisit the final mission.','good');$('next').hidden=true;$('bar').style.width='100%'}});
+ render();
+})();
+</script></body></html>
